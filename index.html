@@ -24,10 +24,43 @@
         height: 100%;
         background-color: rgba(0, 0, 0, 0.2);
       }
+      #click-me {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        border-radius: 5px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        display: block;
+        cursor: pointer;
+        color: rgb(253, 98, 98);
+        font-size: 2rem;
+        opacity: 0.2;
+        animation: heartBeat 3s infinite;
+      }
+
+      @keyframes heartBeat {
+        0% {
+          transform: scale(1) translate(-50%, -50%);
+        }
+        25% {
+          transform: scale(1.2) translate(-50%, -50%);
+        }
+        50% {
+          transform: scale(1) translate(-50%, -50%);
+        }
+        75% {
+          transform: scale(1.2) translate(-50%, -50%);
+        }
+        100% {
+          transform: scale(1) translate(-50%, -50%);
+        }
+      }
     </style>
   </head>
   <body>
     <canvas id="heart"></canvas>
+    <div id="click-me">Touch to me</div>
     <script>
       window.requestAnimationFrame =
         window.__requestAnimationFrame ||
