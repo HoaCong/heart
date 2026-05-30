@@ -1,0 +1,692 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>Love Across Time</title>
+    <style>
+      *,
+      *::before,
+      *::after {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        background: #000;
+        overflow-x: hidden;
+        font-family: "Georgia", "Times New Roman", serif;
+        color: #fff;
+      }
+
+      /* ── Fixed canvas ── */
+      #canvas-wrap {
+        position: fixed;
+        inset: 0;
+        z-index: 0;
+      }
+      #c {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+
+      /* ── Scroll sections ── */
+      .scroll-wrap {
+        position: relative;
+        z-index: 1;
+        pointer-events: none;
+      }
+
+      .section {
+        height: 100vh;
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        padding-bottom: 10vh;
+      }
+
+      .text-block {
+        text-align: center;
+        padding: 32px 40px;
+        opacity: 0;
+        transform: translateY(24px);
+        transition:
+          opacity 1s ease,
+          transform 1s ease;
+        max-width: 680px;
+      }
+      .text-block.show {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .chapter {
+        font-size: 0.65rem;
+        letter-spacing: 0.35em;
+        text-transform: uppercase;
+        color: rgba(255, 200, 220, 0.55);
+        margin-bottom: 18px;
+      }
+
+      .text-block h2 {
+        font-size: clamp(1.15rem, 2.8vw, 2rem);
+        font-weight: 300;
+        letter-spacing: 0.06em;
+        line-height: 1.75;
+        text-shadow:
+          0 0 40px rgba(255, 120, 180, 0.6),
+          0 0 80px rgba(255, 80, 150, 0.2);
+      }
+
+      /* ── Nav dots ── */
+      #dots {
+        position: fixed;
+        right: 28px;
+        top: 50%;
+        transform: translateY(-50%);
+        z-index: 20;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+      .dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.22);
+        cursor: pointer;
+        pointer-events: auto;
+        transition:
+          background 0.4s,
+          transform 0.4s,
+          box-shadow 0.4s;
+      }
+      .dot.on {
+        background: rgba(255, 160, 200, 0.95);
+        transform: scale(1.6);
+        box-shadow: 0 0 10px rgba(255, 120, 180, 0.7);
+      }
+
+      /* ── Loading screen ── */
+      #loader {
+        position: fixed;
+        inset: 0;
+        background: #000;
+        z-index: 100;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 20px;
+        transition: opacity 1s ease;
+      }
+      #loader.hide {
+        opacity: 0;
+        pointer-events: none;
+      }
+      .loader-heart {
+        font-size: 2.5rem;
+        animation: pulse 1.4s ease-in-out infinite;
+      }
+      .loader-txt {
+        font-size: 0.7rem;
+        letter-spacing: 0.3em;
+        color: rgba(255, 200, 220, 0.5);
+        text-transform: uppercase;
+      }
+      @keyframes pulse {
+        0%,
+        100% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.25);
+        }
+      }
+
+      /* ── Mobile tweaks ── */
+      @media (max-width: 600px) {
+        .section {
+          padding-bottom: 8vh;
+        }
+        .text-block {
+          padding: 24px 24px;
+        }
+        #dots {
+          right: 16px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Loading -->
+    <div id="loader">
+      <div class="loader-heart">♡</div>
+      <div class="loader-txt">Preparing the universe…</div>
+    </div>
+
+    <!-- Canvas -->
+    <div id="canvas-wrap"><canvas id="c"></canvas></div>
+
+    <!-- Scrollable story -->
+    <div class="scroll-wrap">
+      <div class="section">
+        <div class="text-block" id="t0">
+          <div class="chapter">Chapter I &mdash; The First Meeting</div>
+          <h2>Among billions of stars,<br />two souls found the same sky.</h2>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="text-block" id="t1">
+          <div class="chapter">Chapter II &mdash; Falling in Love</div>
+          <h2>Every distance disappeared,<br />leaving only a heartbeat.</h2>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="text-block" id="t2">
+          <div class="chapter">Chapter III &mdash; Growing Together</div>
+          <h2>
+            Love is not a moment.<br />It is every day we choose each other.
+          </h2>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="text-block" id="t3">
+          <div class="chapter">Chapter IV &mdash; Forever</div>
+          <h2>And in the end,<br />every journey becomes one story.</h2>
+        </div>
+      </div>
+    </div>
+
+    <!-- Nav dots -->
+    <div id="dots">
+      <div class="dot on" data-s="0"></div>
+      <div class="dot" data-s="1"></div>
+      <div class="dot" data-s="2"></div>
+      <div class="dot" data-s="3"></div>
+    </div>
+
+    <!-- Three.js r128 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- GSAP 3 + ScrollTrigger -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+
+    <script>
+      /* ================================================================
+   LOVE ACROSS TIME — particle storytelling
+   ================================================================ */
+      gsap.registerPlugin(ScrollTrigger);
+
+      /* ---------- constants ---------- */
+      const N = 14000; // total particles
+      const SEC = 4; // number of sections
+      const isMob = /android|iphone|ipad|ipod/i.test(navigator.userAgent);
+      const SCALE = isMob ? 0.65 : 1.0;
+
+      /* ---------- Three.js bootstrap ---------- */
+      const canvas = document.getElementById("c");
+      const renderer = new THREE.WebGLRenderer({
+        canvas,
+        antialias: !isMob,
+        alpha: false,
+      });
+      renderer.setPixelRatio(
+        Math.min(window.devicePixelRatio, isMob ? 1.5 : 2),
+      );
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setClearColor(0x000000, 1);
+
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(
+        60,
+        window.innerWidth / window.innerHeight,
+        0.1,
+        2000,
+      );
+      camera.position.set(0, 0, 380 / SCALE);
+
+      /* ---------- particle shader material ---------- */
+      const vertexShader = `
+  attribute float aSize;
+  attribute vec3  aColor;
+  varying   vec3  vColor;
+  void main(){
+    vColor = aColor;
+    vec4 mv = modelViewMatrix * vec4(position, 1.0);
+    gl_PointSize = aSize * (300.0 / -mv.z);
+    gl_Position  = projectionMatrix * mv;
+  }
+`;
+      const fragmentShader = `
+  varying vec3 vColor;
+  void main(){
+    float d = length(gl_PointCoord - 0.5);
+    if(d > 0.5) discard;
+    float a = 1.0 - smoothstep(0.2, 0.5, d);
+    gl_FragColor = vec4(vColor, a);
+  }
+`;
+
+      const geo = new THREE.BufferGeometry();
+      const posAttr = new Float32Array(N * 3);
+      const colAttr = new Float32Array(N * 3);
+      const sizeAttr = new Float32Array(N);
+
+      geo.setAttribute("position", new THREE.BufferAttribute(posAttr, 3));
+      geo.setAttribute("aColor", new THREE.BufferAttribute(colAttr, 3));
+      geo.setAttribute("aSize", new THREE.BufferAttribute(sizeAttr, 1));
+
+      const mat = new THREE.ShaderMaterial({
+        vertexShader,
+        fragmentShader,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+        transparent: true,
+      });
+
+      const points = new THREE.Points(geo, mat);
+      scene.add(points);
+
+      /* ================================================================
+   SHAPE GENERATORS  — each returns Float32Array[N*3]
+   ================================================================ */
+
+      /* random float helper */
+      const rnd = () => Math.random();
+      const rndRange = (a, b) => a + rnd() * (b - a);
+      const rndGauss = (mu, sig) => {
+        let u = 0,
+          v = 0;
+        while (!u) u = rnd();
+        while (!v) v = rnd();
+        return (
+          mu + sig * Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v)
+        );
+      };
+
+      /* ── Shape 0: two star clusters approaching ── */
+      function shapeStars() {
+        const arr = new Float32Array(N * 3);
+        const half = N >> 1;
+        for (let i = 0; i < N; i++) {
+          const cx = i < half ? -90 : 90;
+          const cy = i < half ? 10 : -10;
+          const r = Math.abs(rndGauss(0, 28));
+          const a = rnd() * Math.PI * 2;
+          arr[i * 3] = cx + r * Math.cos(a);
+          arr[i * 3 + 1] = cy + r * Math.sin(a);
+          arr[i * 3 + 2] = rndRange(-40, 40);
+        }
+        return arr;
+      }
+
+      /* ── Shape 1: heart ── */
+      function shapeHeart() {
+        const arr = new Float32Array(N * 3);
+        // fill heart with random sampled points
+        let placed = 0;
+        while (placed < N) {
+          const t = rnd() * Math.PI * 2;
+          const k = rndRange(0.5, 1.0);
+          const x = 16 * Math.pow(Math.sin(t), 3);
+          const y =
+            13 * Math.cos(t) -
+            5 * Math.cos(2 * t) -
+            2 * Math.cos(3 * t) -
+            Math.cos(4 * t);
+          arr[placed * 3] = x * 7.5 * k;
+          arr[placed * 3 + 1] = y * 7.5 * k;
+          arr[placed * 3 + 2] = rndRange(-15, 15);
+          placed++;
+        }
+        return arr;
+      }
+
+      /* ── Shape 2: infinity symbol ── */
+      function shapeInfinity() {
+        const arr = new Float32Array(N * 3);
+        const a = 130;
+        for (let i = 0; i < N; i++) {
+          const t = rnd() * Math.PI * 2;
+          const denom = 1 + Math.sin(t) * Math.sin(t);
+          const x = (a * Math.cos(t)) / denom;
+          const y = (a * Math.sin(t) * Math.cos(t)) / denom;
+          const fuzz = rndRange(-6, 6);
+          arr[i * 3] = x + fuzz;
+          arr[i * 3 + 1] = y + fuzz * 0.6;
+          arr[i * 3 + 2] = rndRange(-18, 18);
+        }
+        return arr;
+      }
+
+      /* ── Shape 3: two rings → heart galaxy ── */
+      function shapeRings() {
+        const arr = new Float32Array(N * 3);
+        const half = N >> 1;
+        for (let i = 0; i < N; i++) {
+          const cx = i < half ? -68 : 68;
+          const t = rnd() * Math.PI * 2;
+          const r = 55 + rndRange(-8, 8);
+          arr[i * 3] = cx + r * Math.cos(t);
+          arr[i * 3 + 1] = r * Math.sin(t);
+          arr[i * 3 + 2] = rndRange(-12, 12);
+        }
+        return arr;
+      }
+
+      /* ── Colour palettes per shape ── */
+      // each returns [r,g,b] 0-1
+      function colourForShape(shapeIdx, particleIdx) {
+        const palettes = [
+          // 0 – stars: cold blue-white
+          (i) => {
+            const s = i < N >> 1;
+            return s
+              ? [0.55 + rnd() * 0.45, 0.7 + rnd() * 0.3, 1.0]
+              : [1.0, 0.75 + rnd() * 0.25, 0.45 + rnd() * 0.3];
+          },
+          // 1 – heart: pink-rose-gold
+          (_) => [0.95 + rnd() * 0.05, 0.25 + rnd() * 0.45, 0.35 + rnd() * 0.4],
+          // 2 – infinity: purple-lavender
+          (_) => [0.6 + rnd() * 0.4, 0.3 + rnd() * 0.4, 0.9 + rnd() * 0.1],
+          // 3 – rings: gold-champagne
+          (_) => [1.0, 0.75 + rnd() * 0.2, 0.2 + rnd() * 0.3],
+        ];
+        return palettes[shapeIdx](particleIdx);
+      }
+
+      /* ================================================================
+   BUILD TARGETS
+   ================================================================ */
+      const targets = [
+        shapeStars(),
+        shapeHeart(),
+        shapeInfinity(),
+        shapeRings(),
+      ];
+
+      // colour targets
+      const colTargets = [];
+      for (let s = 0; s < SEC; s++) {
+        const buf = new Float32Array(N * 3);
+        for (let i = 0; i < N; i++) {
+          const [r, g, b] = colourForShape(s, i);
+          buf[i * 3] = r;
+          buf[i * 3 + 1] = g;
+          buf[i * 3 + 2] = b;
+        }
+        colTargets.push(buf);
+      }
+
+      // size targets (vary per shape)
+      const sizeTargets = [];
+      const sizeSeed = [1.8, 2.4, 1.6, 2.2];
+      for (let s = 0; s < SEC; s++) {
+        const buf = new Float32Array(N);
+        for (let i = 0; i < N; i++) buf[i] = sizeSeed[s] * (0.5 + rnd() * 1.5);
+        sizeTargets.push(buf);
+      }
+
+      /* ---------- initialise to shape 0 ---------- */
+      for (let i = 0; i < N * 3; i++) {
+        posAttr[i] = targets[0][i];
+        colAttr[i] = colTargets[0][i];
+      }
+      for (let i = 0; i < N; i++) sizeAttr[i] = sizeTargets[0][i];
+      geo.attributes.position.needsUpdate = true;
+      geo.attributes.aColor.needsUpdate = true;
+      geo.attributes.aSize.needsUpdate = true;
+
+      /* ================================================================
+   MORPHING STATE
+   ================================================================ */
+      let morphProg = 0; // 0 … SEC-1  (fractional)
+      let currentSec = 0;
+
+      /* lerp position + colour + size between two integer shapes */
+      function applyMorph(from, to, t) {
+        const eased = gsap.parseEase("power2.inOut")(t); // smooth step
+        const posA = targets[from],
+          posB = targets[to];
+        const colA = colTargets[from],
+          colB = colTargets[to];
+        const szA = sizeTargets[from],
+          szB = sizeTargets[to];
+
+        for (let i = 0; i < N; i++) {
+          const i3 = i * 3;
+          posAttr[i3] = posA[i3] + (posB[i3] - posA[i3]) * eased;
+          posAttr[i3 + 1] =
+            posA[i3 + 1] + (posB[i3 + 1] - posA[i3 + 1]) * eased;
+          posAttr[i3 + 2] =
+            posA[i3 + 2] + (posB[i3 + 2] - posA[i3 + 2]) * eased;
+          colAttr[i3] = colA[i3] + (colB[i3] - colA[i3]) * eased;
+          colAttr[i3 + 1] =
+            colA[i3 + 1] + (colB[i3 + 1] - colA[i3 + 1]) * eased;
+          colAttr[i3 + 2] =
+            colA[i3 + 2] + (colB[i3 + 2] - colA[i3 + 2]) * eased;
+          sizeAttr[i] = szA[i] + (szB[i] - szA[i]) * eased;
+        }
+
+        geo.attributes.position.needsUpdate = true;
+        geo.attributes.aColor.needsUpdate = true;
+        geo.attributes.aSize.needsUpdate = true;
+      }
+
+      /* ================================================================
+   SCROLL TRIGGER — drives morphProg 0 → SEC-1
+   ================================================================ */
+      const proxy = { val: 0 };
+
+      ScrollTrigger.create({
+        trigger: document.body,
+        start: "top top",
+        end: "bottom bottom",
+        scrub: 1.4,
+        onUpdate(self) {
+          morphProg = self.progress * (SEC - 1);
+          const sec = Math.floor(morphProg);
+          const frac = morphProg - sec;
+          if (sec < SEC - 1) applyMorph(sec, sec + 1, frac);
+          else applyMorph(SEC - 2, SEC - 1, 1);
+
+          /* update nav dots + text */
+          const active = Math.round(morphProg);
+          updateUI(active);
+        },
+      });
+
+      /* ================================================================
+   TEXT FADE — IntersectionObserver
+   ================================================================ */
+      const texts = ["t0", "t1", "t2", "t3"].map((id) =>
+        document.getElementById(id),
+      );
+      const io = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((e) => {
+            e.target.classList.toggle("show", e.isIntersecting);
+          });
+        },
+        { threshold: 0.35 },
+      );
+      texts.forEach((el) => io.observe(el));
+
+      /* ================================================================
+   NAV DOTS
+   ================================================================ */
+      const dotsEl = document.querySelectorAll(".dot");
+
+      function updateUI(sec) {
+        dotsEl.forEach((d, i) => d.classList.toggle("on", i === sec));
+      }
+
+      dotsEl.forEach((dot) => {
+        dot.addEventListener("click", () => {
+          const s = parseInt(dot.dataset.s);
+          const frac = s / (SEC - 1);
+          window.scrollTo({
+            top: document.body.scrollHeight * frac,
+            behavior: "smooth",
+          });
+        });
+      });
+
+      /* ================================================================
+   MOUSE PARALLAX
+   ================================================================ */
+      let mx = 0,
+        my = 0,
+        tx = 0,
+        ty = 0;
+
+      window.addEventListener("mousemove", (e) => {
+        mx = (e.clientX / window.innerWidth - 0.5) * 2;
+        my = (e.clientY / window.innerHeight - 0.5) * 2;
+      });
+
+      // Touch support
+      window.addEventListener(
+        "touchmove",
+        (e) => {
+          const t = e.touches[0];
+          mx = (t.clientX / window.innerWidth - 0.5) * 2;
+          my = (t.clientY / window.innerHeight - 0.5) * 2;
+        },
+        { passive: true },
+      );
+
+      /* ================================================================
+   AMBIENT DRIFT — slow random wander applied to ALL particles
+   via a secondary Float32Array offset
+   ================================================================ */
+      const drift = new Float32Array(N * 3);
+      const driftV = new Float32Array(N * 3);
+      for (let i = 0; i < N; i++) {
+        driftV[i * 3] = rndRange(-0.008, 0.008);
+        driftV[i * 3 + 1] = rndRange(-0.008, 0.008);
+        driftV[i * 3 + 2] = rndRange(-0.004, 0.004);
+      }
+      const DRIFT_LIMIT = 4.0;
+
+      function tickDrift() {
+        for (let i = 0; i < N; i++) {
+          const i3 = i * 3;
+          drift[i3] += driftV[i3];
+          drift[i3 + 1] += driftV[i3 + 1];
+          drift[i3 + 2] += driftV[i3 + 2];
+          // spring back
+          if (Math.abs(drift[i3]) > DRIFT_LIMIT) driftV[i3] *= -0.8;
+          if (Math.abs(drift[i3 + 1]) > DRIFT_LIMIT) driftV[i3 + 1] *= -0.8;
+          if (Math.abs(drift[i3 + 2]) > DRIFT_LIMIT) driftV[i3 + 2] *= -0.8;
+        }
+      }
+
+      /* ================================================================
+   RENDER LOOP
+   ================================================================ */
+      const clock = new THREE.Clock();
+
+      function animate() {
+        requestAnimationFrame(animate);
+
+        // parallax — smooth follow
+        tx += (mx * 18 - tx) * 0.04;
+        ty += (-my * 12 - ty) * 0.04;
+        points.rotation.y = tx * 0.012;
+        points.rotation.x = ty * 0.01;
+
+        // slow orbit
+        const t = clock.getElapsedTime();
+        points.rotation.z = Math.sin(t * 0.06) * 0.04;
+
+        // drift every N frames (cheap)
+        if (Math.round(t * 60) % 2 === 0) tickDrift();
+
+        renderer.render(scene, camera);
+      }
+
+      /* ================================================================
+   RESIZE
+   ================================================================ */
+      window.addEventListener("resize", () => {
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        ScrollTrigger.refresh();
+      });
+
+      /* ================================================================
+   INTRO ANIMATION — scatter → stars
+   ================================================================ */
+      function startIntro() {
+        // randomise start positions
+        for (let i = 0; i < N; i++) {
+          posAttr[i * 3] = rndRange(-400, 400);
+          posAttr[i * 3 + 1] = rndRange(-300, 300);
+          posAttr[i * 3 + 2] = rndRange(-200, 200);
+          colAttr[i * 3] = 1;
+          colAttr[i * 3 + 1] = 1;
+          colAttr[i * 3 + 2] = 1;
+          sizeAttr[i] = rnd() * 1.5;
+        }
+        geo.attributes.position.needsUpdate = true;
+        geo.attributes.aColor.needsUpdate = true;
+        geo.attributes.aSize.needsUpdate = true;
+
+        // tween into shape 0
+        const tmp = { p: 0 };
+        gsap.to(tmp, {
+          p: 1,
+          duration: 2.8,
+          ease: "power3.inOut",
+          onUpdate() {
+            applyMorph(0, 0, 0); // set to shape0 proportionally
+            // blend from random to shape0
+            const e = tmp.p;
+            const t0 = targets[0];
+            const c0 = colTargets[0];
+            const s0 = sizeTargets[0];
+            for (let i = 0; i < N; i++) {
+              const i3 = i * 3;
+              // we already set target0; just reveal opacity by scaling size
+              sizeAttr[i] = s0[i] * e;
+            }
+            geo.attributes.aSize.needsUpdate = true;
+          },
+          onComplete() {
+            document.getElementById("t0").classList.add("show");
+          },
+        });
+      }
+
+      /* ================================================================
+   LOADER HIDE → START
+   ================================================================ */
+      window.addEventListener("load", () => {
+        setTimeout(() => {
+          const loader = document.getElementById("loader");
+          loader.classList.add("hide");
+          setTimeout(() => {
+            loader.style.display = "none";
+          }, 1100);
+          animate();
+          startIntro();
+        }, 600);
+      });
+    </script>
+  </body>
+</html>
