@@ -1,0 +1,234 @@
+/* ── Reset ───────────────────────────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* ── Root ────────────────────────────────────────────────────────────────── */
+:root {
+  --color-bg: #000000;
+  --color-primary: #ffffff;
+  --color-accent: #ff4466;
+  --color-dim: rgba(255, 255, 255, 0.45);
+  --font-display: "Georgia", "Times New Roman", serif;
+  --font-body: "Helvetica Neue", "Arial", sans-serif;
+}
+
+html {
+  /* No height or overflow constraints — GSAP ScrollTrigger needs window scroll */
+}
+
+body {
+  width: 100%;
+  min-height: 100vh;
+  background: var(--color-bg);
+  color: var(--color-primary);
+  /* 'clip' trims horizontal bleed without blocking vertical scroll */
+  overflow-x: clip;
+}
+
+/* ── WebGL canvas — fixed full-viewport ──────────────────────────────────── */
+#canvas {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  z-index: 0;
+}
+
+/* ── Scroll container — 600 vh to drive the ScrollTrigger ───────────────── */
+#scroll-container {
+  height: 600vh;
+  width: 100%;
+  position: relative;
+  z-index: 1;
+  /* Transparent: only used as scroll target */
+  pointer-events: none;
+}
+
+/* ── UI overlay — fixed, sits above canvas ───────────────────────────────── */
+#ui-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: clamp(2rem, 5vw, 4rem) clamp(2rem, 6vw, 5rem);
+}
+
+/* ── Section label block ─────────────────────────────────────────────────── */
+#section-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.25rem;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+#section-number {
+  font-family: var(--font-body);
+  font-size: clamp(0.65rem, 1.2vw, 0.8rem);
+  letter-spacing: 0.3em;
+  color: var(--color-accent);
+  padding-top: 0.35em; /* align with title cap height */
+  flex-shrink: 0;
+  opacity: 0.9;
+}
+
+#section-titles {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+#section-title {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(2rem, 4.5vw, 3.8rem);
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  color: var(--color-primary);
+  /* Subtle text-shadow creates depth against the particle field */
+  text-shadow:
+    0 0 40px rgba(255, 255, 255, 0.08),
+    0 2px 12px rgba(0, 0, 0, 0.6);
+}
+
+#section-subtitle {
+  font-family: var(--font-body);
+  font-weight: 300;
+  font-size: clamp(0.8rem, 1.5vw, 1rem);
+  line-height: 1.55;
+  letter-spacing: 0.02em;
+  color: var(--color-dim);
+  max-width: 38ch;
+}
+
+/* ── Scroll hint ─────────────────────────────────────────────────────────── */
+#scroll-hint {
+  position: fixed;
+  right: clamp(2rem, 4vw, 3.5rem);
+  bottom: clamp(2rem, 4vh, 3.5rem);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  opacity: 0; /* faded in by JS after loader dismisses */
+}
+
+#scroll-hint span {
+  font-family: var(--font-body);
+  font-size: 0.6rem;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--color-dim);
+  writing-mode: vertical-rl;
+}
+
+#scroll-line {
+  width: 1px;
+  height: 3.5rem;
+  background: linear-gradient(to bottom, transparent, var(--color-dim));
+  /* Animated line travelling downward */
+  animation: scrollLineAnim 2s ease-in-out infinite;
+  transform-origin: top;
+}
+
+@keyframes scrollLineAnim {
+  0% {
+    transform: scaleY(0);
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    transform: scaleY(1);
+    opacity: 0.4;
+  }
+}
+
+/* ── Loading overlay ─────────────────────────────────────────────────────── */
+#loader {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.4s ease;
+}
+
+#loader-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+/* Pulsing particle rings as loader animation */
+#loader-particles {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  border: 1px solid var(--color-accent);
+  box-shadow:
+    0 0 12px var(--color-accent),
+    0 0 24px rgba(255, 68, 102, 0.3);
+  animation: loaderPulse 1.6s ease-in-out infinite;
+}
+
+@keyframes loaderPulse {
+  0%,
+  100% {
+    transform: scale(0.85);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scale(1.15);
+    opacity: 1;
+  }
+}
+
+#loader-text {
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-dim);
+}
+
+/* ── Mobile adjustments ──────────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  #ui-overlay {
+    padding: 1.5rem;
+    justify-content: flex-end;
+  }
+
+  #section-label {
+    gap: 0.85rem;
+  }
+
+  #section-subtitle {
+    max-width: 100%;
+  }
+
+  #scroll-hint {
+    display: none;
+  }
+}
+
+/* ── Reduced motion — honour user preference ─────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  #scroll-line,
+  #loader-particles {
+    animation: none;
+  }
+}
