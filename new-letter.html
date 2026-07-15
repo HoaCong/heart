@@ -1,0 +1,1152 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
+    <title>16.07 — Một điều bí mật dành cho em</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;1,500&family=Charm:wght@400;700&family=Be+Vietnam+Pro:wght@300;400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg-1: #1c1338;
+        --bg-2: #3a2154;
+        --bg-3: #6e3358;
+        --gold: #e8b84b;
+        --gold-light: #f7d488;
+        --rose: #f2a9c4;
+        --coral: #e8607d;
+        --cream: #fbf3e4;
+        --ink: #4a3728;
+        --font-display: "Playfair Display", "Be Vietnam Pro", serif;
+        --font-hand: "Charm", "Be Vietnam Pro", cursive;
+        --font-body: "Be Vietnam Pro", sans-serif;
+      }
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      html {
+        height: 100%;
+        overflow: hidden;
+        scroll-behavior: smooth;
+      }
+      html.unlocked {
+        overflow-y: auto;
+        overflow-x: hidden;
+      }
+      body {
+        min-height: 100%;
+        background: var(--bg-1);
+        font-family: var(--font-body);
+        color: var(--cream);
+        overflow-x: hidden;
+        position: relative;
+      }
+
+      button {
+        font-family: inherit;
+      }
+
+      /* ---------- background sky (persistent) ---------- */
+      .bg-sky {
+        position: fixed;
+        inset: 0;
+        z-index: 0;
+        background: linear-gradient(
+          180deg,
+          var(--bg-1) 0%,
+          var(--bg-2) 55%,
+          var(--bg-3) 100%
+        );
+        overflow: hidden;
+        pointer-events: none;
+      }
+      .bg-sky::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(
+          circle at 50% 28%,
+          rgba(0, 0, 0, 0) 35%,
+          rgba(8, 4, 18, 0.45) 100%
+        );
+      }
+      .star {
+        position: absolute;
+        background: #fff;
+        border-radius: 50%;
+        animation: twinkle ease-in-out infinite;
+      }
+      @keyframes twinkle {
+        0%,
+        100% {
+          opacity: 0.2;
+          transform: scale(0.75);
+        }
+        50% {
+          opacity: 1;
+          transform: scale(1.2);
+        }
+      }
+      .moon {
+        position: absolute;
+        top: 8%;
+        right: 10%;
+        width: clamp(64px, 11vw, 110px);
+        height: clamp(64px, 11vw, 110px);
+        border-radius: 50%;
+        background: radial-gradient(
+          circle at 35% 30%,
+          #fff6dd,
+          var(--gold) 62%,
+          #c98f2e 100%
+        );
+        box-shadow:
+          0 0 60px 12px rgba(232, 184, 75, 0.4),
+          0 0 120px 46px rgba(232, 184, 75, 0.12);
+      }
+      .firefly {
+        position: absolute;
+        width: 4px;
+        height: 4px;
+        border-radius: 50%;
+        background: var(--gold-light);
+        box-shadow: 0 0 8px 2px rgba(247, 212, 136, 0.85);
+        opacity: 0;
+        animation: firefly-drift ease-in-out infinite;
+      }
+      @keyframes firefly-drift {
+        0% {
+          transform: translate(0, 0);
+          opacity: 0;
+        }
+        15% {
+          opacity: 0.9;
+        }
+        50% {
+          transform: translate(var(--dx, 40px), var(--dy, -60px));
+          opacity: 0.55;
+        }
+        85% {
+          opacity: 0.85;
+        }
+        100% {
+          transform: translate(
+            calc(var(--dx, 40px) * -1),
+            calc(var(--dy, -60px) * 1.4)
+          );
+          opacity: 0;
+        }
+      }
+
+      /* ---------- fireworks canvas ---------- */
+      #fireworksCanvas {
+        position: fixed;
+        inset: 0;
+        z-index: 1;
+        pointer-events: none;
+      }
+
+      /* ---------- falling petals ---------- */
+      .petals-layer {
+        position: fixed;
+        inset: 0;
+        z-index: 2;
+        overflow: hidden;
+        pointer-events: none;
+      }
+      .petal {
+        position: absolute;
+        top: -8vh;
+        width: var(--size);
+        height: var(--size);
+        border-radius: 0 100% 0 100%;
+        opacity: 0;
+        animation: petal-fall linear infinite;
+        animation-duration: var(--duration);
+        animation-delay: var(--delay);
+      }
+      .petal-rose {
+        background: linear-gradient(135deg, var(--rose), var(--coral));
+      }
+      .petal-gold {
+        background: linear-gradient(135deg, var(--gold-light), var(--gold));
+      }
+      .petal-cream {
+        background: linear-gradient(135deg, var(--cream), #f2c9a0);
+      }
+      @keyframes petal-fall {
+        0% {
+          transform: translate(0, -10vh) rotate(0deg);
+          opacity: 0;
+        }
+        10% {
+          opacity: 0.9;
+        }
+        50% {
+          transform: translate(var(--sway), 55vh) rotate(var(--rot));
+        }
+        100% {
+          transform: translate(calc(var(--sway) * -1), 115vh)
+            rotate(calc(var(--rot) * 2));
+          opacity: 0;
+        }
+      }
+
+      /* ---------- layout screens ---------- */
+      #app {
+        position: relative;
+        z-index: 5;
+      }
+      .screen {
+        position: relative;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 32px 20px;
+        text-align: center;
+      }
+
+      .eyebrow {
+        font-family: var(--font-body);
+        font-size: 12px;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: var(--gold-light);
+        opacity: 0.85;
+        margin-bottom: 14px;
+      }
+
+      /* ---------- lock card ---------- */
+      .lock-card {
+        position: relative;
+        width: min(380px, 90vw);
+        padding: 38px 26px 30px;
+        border-radius: 22px;
+        background: linear-gradient(
+          165deg,
+          rgba(255, 255, 255, 0.08),
+          rgba(255, 255, 255, 0.02)
+        );
+        border: 1px solid rgba(247, 212, 136, 0.28);
+        -webkit-backdrop-filter: blur(6px);
+        backdrop-filter: blur(6px);
+        box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4);
+      }
+      .lock-card.shake {
+        animation: shake 0.5s;
+      }
+      @keyframes shake {
+        10%,
+        90% {
+          transform: translateX(-2px);
+        }
+        20%,
+        80% {
+          transform: translateX(4px);
+        }
+        30%,
+        50%,
+        70% {
+          transform: translateX(-9px);
+        }
+        40%,
+        60% {
+          transform: translateX(9px);
+        }
+      }
+      .lock-card.success {
+        animation: unlock-glow 0.7s ease;
+      }
+      @keyframes unlock-glow {
+        0% {
+          box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4);
+        }
+        50% {
+          box-shadow:
+            0 30px 60px rgba(0, 0, 0, 0.4),
+            0 0 70px 14px rgba(232, 184, 75, 0.55);
+        }
+        100% {
+          box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4);
+        }
+      }
+      .lock-title {
+        font-family: var(--font-display);
+        font-weight: 600;
+        font-size: clamp(22px, 5vw, 28px);
+        line-height: 1.35;
+        color: var(--cream);
+        margin-bottom: 26px;
+      }
+      .date-dial {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 14px;
+        margin-bottom: 24px;
+      }
+      .dial-group {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+      }
+      .dial-input {
+        width: 64px;
+        height: 64px;
+        border-radius: 16px;
+        border: 2px solid rgba(247, 212, 136, 0.5);
+        background: rgba(21, 14, 40, 0.55);
+        color: var(--gold-light);
+        font-family: var(--font-display);
+        font-size: 26px;
+        text-align: center;
+        outline: none;
+        caret-color: var(--gold);
+        transition:
+          border-color 0.2s,
+          box-shadow 0.2s;
+      }
+      .dial-input:focus {
+        border-color: var(--gold);
+        box-shadow: 0 0 0 4px rgba(232, 184, 75, 0.2);
+      }
+      .dial-input::placeholder {
+        color: rgba(247, 212, 136, 0.35);
+      }
+      .dial-label {
+        font-size: 11px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: rgba(251, 243, 228, 0.6);
+      }
+      .dial-sep {
+        font-family: var(--font-display);
+        font-size: 22px;
+        color: var(--gold);
+        margin-top: -20px;
+      }
+
+      .unlock-btn {
+        appearance: none;
+        border: none;
+        cursor: pointer;
+        padding: 13px 30px;
+        border-radius: 999px;
+        font-size: 15px;
+        font-weight: 600;
+        letter-spacing: 0.03em;
+        color: #221331;
+        background: linear-gradient(120deg, var(--gold-light), var(--coral));
+        box-shadow: 0 12px 26px rgba(232, 96, 125, 0.35);
+        transition:
+          transform 0.2s ease,
+          box-shadow 0.2s ease;
+      }
+      .unlock-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 16px 32px rgba(232, 96, 125, 0.45);
+      }
+      .unlock-btn:active {
+        transform: translateY(0);
+      }
+      .unlock-btn:focus-visible,
+      .dial-input:focus-visible {
+        outline: 2px solid var(--gold-light);
+        outline-offset: 3px;
+      }
+
+      .lock-msg {
+        min-height: 20px;
+        margin-top: 16px;
+        font-size: 13px;
+        color: var(--rose);
+      }
+
+      /* ---------- main scene ---------- */
+      .scene-title {
+        font-family: var(--font-display);
+        font-style: italic;
+        font-weight: 600;
+        font-size: clamp(28px, 6vw, 44px);
+        line-height: 1.28;
+        margin-bottom: 38px;
+      }
+      .scene-title span {
+        background: linear-gradient(120deg, var(--gold-light), var(--rose));
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+
+      .envelope-wrap {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+        cursor: pointer;
+      }
+      .envelope {
+        position: relative;
+        width: 250px;
+        height: 165px;
+        perspective: 700px;
+        animation: envelope-float 3.4s ease-in-out infinite;
+      }
+      @keyframes envelope-float {
+        0%,
+        100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-12px);
+        }
+      }
+      .envelope-body {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(160deg, #fbefe0, #f3d9c4);
+        border-radius: 12px;
+        box-shadow: 0 20px 45px rgba(10, 5, 25, 0.5);
+      }
+      .envelope-fold {
+        position: absolute;
+        inset: 0;
+        border-radius: 12px;
+        background:
+          linear-gradient(
+            135deg,
+            rgba(0, 0, 0, 0) 48%,
+            rgba(0, 0, 0, 0.07) 50%,
+            rgba(0, 0, 0, 0) 52%
+          ),
+          linear-gradient(
+            45deg,
+            rgba(0, 0, 0, 0) 48%,
+            rgba(0, 0, 0, 0.07) 50%,
+            rgba(0, 0, 0, 0) 52%
+          );
+        pointer-events: none;
+      }
+      .envelope-letter {
+        position: absolute;
+        left: 13px;
+        right: 13px;
+        top: 10px;
+        bottom: 13px;
+        background: linear-gradient(180deg, #fffdf8, #fbf3e4);
+        border-radius: 8px;
+        box-shadow: 0 6px 14px rgba(0, 0, 0, 0.14);
+        transform: translateY(6px);
+        transition: transform 0.7s cubic-bezier(0.22, 0.9, 0.3, 1.25);
+        z-index: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+        color: var(--rose);
+        opacity: 0.55;
+      }
+      .envelope-flap {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 86px;
+        background: linear-gradient(160deg, #f3d9c4, #e9be9c);
+        clip-path: polygon(0 0, 100% 0, 50% 78%);
+        transform-origin: top center;
+        transform-style: preserve-3d;
+        backface-visibility: hidden;
+        transition: transform 0.7s cubic-bezier(0.4, 0.2, 0.2, 1);
+        z-index: 3;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+      }
+      .wax-seal {
+        position: absolute;
+        top: 50px;
+        left: 50%;
+        width: 38px;
+        height: 38px;
+        margin-left: -19px;
+        border-radius: 50%;
+        background: radial-gradient(circle at 35% 30%, #f0899e, #c23b57);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-size: 15px;
+        box-shadow:
+          0 4px 10px rgba(0, 0, 0, 0.35),
+          inset 0 0 0 2px rgba(255, 255, 255, 0.15);
+        z-index: 4;
+        transition:
+          opacity 0.3s ease,
+          transform 0.3s ease;
+      }
+      .envelope.open .envelope-flap {
+        transform: rotateX(180deg) translateY(2px);
+      }
+      .envelope.open .wax-seal {
+        opacity: 0;
+        transform: translate(0, -10px) scale(0.5);
+      }
+      .envelope.open .envelope-letter {
+        transform: translateY(-32px);
+      }
+
+      .envelope-hint {
+        font-size: 13px;
+        color: rgba(251, 243, 228, 0.75);
+        letter-spacing: 0.02em;
+        animation: hint-pulse 2.4s ease-in-out infinite;
+      }
+      @keyframes hint-pulse {
+        0%,
+        100% {
+          opacity: 0.55;
+        }
+        50% {
+          opacity: 1;
+        }
+      }
+
+      /* ---------- mini hearts ---------- */
+      .mini-heart {
+        position: fixed;
+        font-size: 18px;
+        pointer-events: none;
+        z-index: 15;
+        animation: mini-heart-rise 1.2s ease-out forwards;
+      }
+      @keyframes mini-heart-rise {
+        0% {
+          transform: translateY(0) scale(0.6);
+          opacity: 1;
+        }
+        100% {
+          transform: translateY(-90px) scale(1.1);
+          opacity: 0;
+        }
+      }
+
+      /* ---------- letter modal ---------- */
+      .letter-modal {
+        position: fixed;
+        inset: 0;
+        z-index: 20;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        opacity: 0;
+        visibility: hidden;
+        transition:
+          opacity 0.4s ease,
+          visibility 0s linear 0.4s;
+      }
+      .letter-modal.show {
+        opacity: 1;
+        visibility: visible;
+        transition: opacity 0.4s ease;
+      }
+      .letter-modal-overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(10, 6, 20, 0.72);
+        -webkit-backdrop-filter: blur(3px);
+        backdrop-filter: blur(3px);
+      }
+      .letter-paper {
+        position: relative;
+        z-index: 1;
+        width: min(560px, 92vw);
+        max-height: 82vh;
+        overflow-y: auto;
+        background: linear-gradient(165deg, #fffdf7, var(--cream));
+        border-radius: 6px 26px 6px 26px;
+        padding: 50px 34px 40px;
+        box-shadow: 0 30px 70px rgba(0, 0, 0, 0.5);
+        transform: translateY(24px) scale(0.96);
+        transition: transform 0.5s cubic-bezier(0.22, 0.8, 0.3, 1.2);
+        color: var(--ink);
+      }
+      .letter-modal.show .letter-paper {
+        transform: translateY(0) scale(1);
+      }
+      .letter-close {
+        position: absolute;
+        top: 14px;
+        right: 14px;
+        width: 32px;
+        height: 32px;
+        border: none;
+        border-radius: 50%;
+        background: rgba(74, 55, 40, 0.08);
+        color: var(--ink);
+        font-size: 16px;
+        cursor: pointer;
+        transition:
+          background 0.2s ease,
+          transform 0.2s ease;
+      }
+      .letter-close:hover {
+        background: rgba(74, 55, 40, 0.16);
+        transform: scale(1.06);
+      }
+      .letter-heading {
+        font-family: var(--font-hand);
+        font-weight: 700;
+        font-size: clamp(32px, 5.5vw, 40px);
+        margin-bottom: 16px;
+      }
+      .letter-body {
+        font-family: var(--font-hand);
+        font-weight: 400;
+        font-size: clamp(21px, 2.9vw, 24px);
+        line-height: 1.95;
+        white-space: pre-line;
+        min-height: 60px;
+      }
+      .letter-signoff {
+        font-family: var(--font-hand);
+        font-weight: 700;
+        font-size: clamp(24px, 3.4vw, 28px);
+        text-align: right;
+        margin-top: 22px;
+      }
+      .pressed-flower {
+        position: absolute;
+        font-size: 56px;
+        opacity: 0.16;
+        pointer-events: none;
+        filter: saturate(0.8);
+      }
+      .corner-tl {
+        top: -10px;
+        left: -14px;
+        transform: rotate(-14deg);
+      }
+      .corner-br {
+        bottom: -14px;
+        right: -14px;
+        transform: rotate(10deg);
+      }
+
+      /* ---------- misc ---------- */
+      .visually-hidden {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+      }
+
+      @media (max-width: 420px) {
+        .dial-input {
+          width: 56px;
+          height: 56px;
+          font-size: 22px;
+        }
+        .envelope {
+          width: 220px;
+          height: 150px;
+        }
+        .letter-paper {
+          padding: 44px 22px 32px;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation-duration: 0.001ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 0.001ms !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="bg-sky" id="bgSky" aria-hidden="true">
+      <div id="starsLayer"></div>
+      <div class="moon"></div>
+      <div id="firefliesLayer"></div>
+    </div>
+
+    <canvas id="fireworksCanvas" aria-hidden="true"></canvas>
+    <div class="petals-layer" id="petalsLayer" aria-hidden="true"></div>
+
+    <main id="app">
+      <!-- ============ LOCK SCREEN ============ -->
+      <section id="lockScreen" class="screen">
+        <p class="eyebrow">Một điều bí mật dành riêng cho em</p>
+        <div class="lock-card" id="lockCard">
+          <h1 class="lock-title">
+            Nhập đúng ngày đặc biệt<br />để mở khoá đêm nay
+          </h1>
+
+          <div class="date-dial">
+            <div class="dial-group">
+              <label class="visually-hidden" for="ddInput">Ngày</label>
+              <input
+                type="text"
+                inputmode="numeric"
+                maxlength="2"
+                class="dial-input"
+                id="ddInput"
+                placeholder="••"
+                autocomplete="off"
+              />
+              <span class="dial-label">Ngày</span>
+            </div>
+            <span class="dial-sep">–</span>
+            <div class="dial-group">
+              <label class="visually-hidden" for="mmInput">Tháng</label>
+              <input
+                type="text"
+                inputmode="numeric"
+                maxlength="2"
+                class="dial-input"
+                id="mmInput"
+                placeholder="••"
+                autocomplete="off"
+              />
+              <span class="dial-label">Tháng</span>
+            </div>
+          </div>
+
+          <button type="button" class="unlock-btn" id="unlockBtn">
+            Mở khoá 🔓
+          </button>
+          <p class="lock-msg" id="lockMsg" role="status"></p>
+        </div>
+      </section>
+
+      <!-- ============ MAIN SCENE ============ -->
+      <section id="mainScene" class="screen">
+        <p class="eyebrow">16.07 — Ngày của em</p>
+        <h1 class="scene-title">
+          Chúc mừng<br /><span>sinh nhật em yêu</span>
+        </h1>
+
+        <div class="envelope-wrap" id="envelopeWrap">
+          <div class="envelope" id="envelope">
+            <div class="envelope-body"></div>
+            <div class="envelope-fold"></div>
+            <div class="envelope-letter">✉</div>
+            <div class="envelope-flap"></div>
+            <div class="wax-seal">🤍</div>
+          </div>
+          <p class="envelope-hint">Chạm vào phong thư để đọc lá thư của anh</p>
+        </div>
+      </section>
+    </main>
+
+    <!-- ============ LETTER MODAL ============ -->
+    <div
+      class="letter-modal"
+      id="letterModal"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Lá thư sinh nhật"
+    >
+      <div class="letter-modal-overlay" id="letterOverlay"></div>
+      <div class="letter-paper" id="letterPaper">
+        <span class="pressed-flower corner-tl" aria-hidden="true">🌸</span>
+        <span class="pressed-flower corner-br" aria-hidden="true">🌷</span>
+        <button
+          type="button"
+          class="letter-close"
+          id="letterClose"
+          aria-label="Đóng lá thư"
+        >
+          ✕
+        </button>
+        <h2 class="letter-heading" id="letterHeading"></h2>
+        <div class="letter-body" id="letterBody"></div>
+        <p class="letter-signoff" id="letterSignoff"></p>
+      </div>
+    </div>
+
+    <script>
+      // ======================================================================
+      // 🎂 CONFIG — chỉnh nội dung ở đây cho phù hợp với người yêu bạn nhé
+      // ======================================================================
+      const CONFIG = {
+        secretDay: "16", // ngày sinh nhật (mật khẩu mở khoá)
+        secretMonth: "07", // tháng sinh nhật
+
+        heading: "Gửi em yêu,",
+        letterBody: `Chúc mừng sinh nhật em — người đã khiến ngày 16 tháng 7 trở thành ngày anh thích nhất trong năm.
+
+Cảm ơn em vì đã luôn ở bên, cùng anh đi qua những ngày vui lẫn những lúc mệt mỏi, và vì đã kiên nhẫn với một người đôi khi vụng về trong việc thể hiện tình cảm như anh.
+
+Anh mong sinh nhật này em được cười thật nhiều, được yêu thương thật nhiều, và biết rằng dù có bao nhiêu ngày 16 tháng 7 trôi qua, vẫn sẽ luôn có anh ở đây, mang pháo hoa và những cánh hoa nhỏ này đến cho em.
+
+Chúc em tuổi mới thật rực rỡ, khoẻ mạnh và hạnh phúc. Anh yêu em, rất nhiều.`,
+        signOff: "Yêu em, Anh 🤍",
+      };
+
+      // ======================================================================
+      // Background sky: stars + fireflies
+      // ======================================================================
+      function initStars() {
+        const layer = document.getElementById("starsLayer");
+        const frag = document.createDocumentFragment();
+        const count = 90;
+        for (let i = 0; i < count; i++) {
+          const star = document.createElement("span");
+          star.className = "star";
+          const size = (Math.random() * 2 + 1).toFixed(2);
+          star.style.width = size + "px";
+          star.style.height = size + "px";
+          star.style.left = Math.random() * 100 + "vw";
+          star.style.top = Math.random() * 70 + "vh";
+          star.style.animationDuration =
+            (2 + Math.random() * 3.5).toFixed(2) + "s";
+          star.style.animationDelay = (Math.random() * 4).toFixed(2) + "s";
+          frag.appendChild(star);
+        }
+        layer.appendChild(frag);
+      }
+
+      function initFireflies() {
+        const layer = document.getElementById("firefliesLayer");
+        const frag = document.createDocumentFragment();
+        const count = 14;
+        for (let i = 0; i < count; i++) {
+          const fly = document.createElement("span");
+          fly.className = "firefly";
+          fly.style.left = Math.random() * 100 + "vw";
+          fly.style.top = 40 + Math.random() * 55 + "vh";
+          fly.style.setProperty(
+            "--dx",
+            (Math.random() * 80 - 40).toFixed(1) + "px",
+          );
+          fly.style.setProperty(
+            "--dy",
+            (Math.random() * -70 - 20).toFixed(1) + "px",
+          );
+          fly.style.animationDuration =
+            (5 + Math.random() * 4).toFixed(2) + "s";
+          fly.style.animationDelay = (Math.random() * 5).toFixed(2) + "s";
+          frag.appendChild(fly);
+        }
+        layer.appendChild(frag);
+      }
+
+      // ======================================================================
+      // Lock screen logic
+      // ======================================================================
+      const ddInput = document.getElementById("ddInput");
+      const mmInput = document.getElementById("mmInput");
+      const unlockBtn = document.getElementById("unlockBtn");
+      const lockMsg = document.getElementById("lockMsg");
+      const lockCard = document.getElementById("lockCard");
+      const lockScreen = document.getElementById("lockScreen");
+      const mainScene = document.getElementById("mainScene");
+
+      let wrongAttempts = 0;
+
+      function sanitizeDigits(input) {
+        input.value = input.value.replace(/[^0-9]/g, "").slice(0, 2);
+      }
+
+      ddInput.addEventListener("input", () => {
+        sanitizeDigits(ddInput);
+        if (ddInput.value.length === 2) mmInput.focus();
+      });
+      mmInput.addEventListener("input", () => sanitizeDigits(mmInput));
+      mmInput.addEventListener("keydown", (e) => {
+        if (e.key === "Backspace" && mmInput.value === "") ddInput.focus();
+      });
+      [ddInput, mmInput].forEach((inp) => {
+        inp.addEventListener("keydown", (e) => {
+          if (e.key === "Enter") tryUnlock();
+        });
+      });
+      unlockBtn.addEventListener("click", tryUnlock);
+
+      function tryUnlock() {
+        const dd = ddInput.value.trim().padStart(2, "0");
+        const mm = mmInput.value.trim().padStart(2, "0");
+
+        if (dd === CONFIG.secretDay && mm === CONFIG.secretMonth) {
+          lockMsg.textContent = "";
+          doUnlockSequence();
+        } else {
+          wrongAttempts++;
+          lockCard.classList.remove("shake");
+          // force reflow so the animation can restart
+          void lockCard.offsetWidth;
+          lockCard.classList.add("shake");
+          lockMsg.textContent =
+            wrongAttempts >= 3
+              ? "Gợi ý: là ngày đặc biệt nhất của em 💕"
+              : "Chưa đúng rồi, thử lại nhé!";
+        }
+      }
+
+      function doUnlockSequence() {
+        lockCard.classList.add("success");
+        document.documentElement.classList.add("unlocked");
+        ddInput.blur();
+        mmInput.blur();
+
+        setTimeout(() => {
+          mainScene.scrollIntoView({ behavior: "smooth", block: "start" });
+        }, 400);
+
+        startFireworks();
+        startPetals();
+      }
+
+      // ======================================================================
+      // Fireworks (canvas particle system)
+      // ======================================================================
+      const canvas = document.getElementById("fireworksCanvas");
+      const ctx = canvas.getContext("2d");
+      const FIREWORK_COLORS = [
+        "#f2c94c",
+        "#f2994a",
+        "#eb5b72",
+        "#f2a9c4",
+        "#fdebd3",
+        "#c9a6f2",
+      ];
+      let fireworkParticles = [];
+      let fireworksRafId = null;
+      let fireworksLaunchInterval = null;
+
+      function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      }
+      window.addEventListener("resize", resizeCanvas);
+      resizeCanvas();
+
+      function spawnBurst(x, y) {
+        const color =
+          FIREWORK_COLORS[Math.floor(Math.random() * FIREWORK_COLORS.length)];
+        const count = 46 + Math.floor(Math.random() * 20);
+        for (let i = 0; i < count; i++) {
+          const angle = (Math.PI * 2 * i) / count + Math.random() * 0.2;
+          const speed = 1.6 + Math.random() * 2.6;
+          fireworkParticles.push({
+            x,
+            y,
+            vx: Math.cos(angle) * speed,
+            vy: Math.sin(angle) * speed,
+            alpha: 1,
+            color,
+            size: 1.4 + Math.random() * 1.6,
+            decay: 0.01 + Math.random() * 0.012,
+          });
+        }
+      }
+
+      function launchRocket() {
+        const startX = 60 + Math.random() * (window.innerWidth - 120);
+        const targetY =
+          window.innerHeight * 0.15 + Math.random() * window.innerHeight * 0.25;
+        spawnBurst(startX, targetY);
+      }
+
+      function fireworksLoop() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        for (let i = fireworkParticles.length - 1; i >= 0; i--) {
+          const p = fireworkParticles[i];
+          p.x += p.vx;
+          p.y += p.vy;
+          p.vy += 0.028;
+          p.vx *= 0.985;
+          p.alpha -= p.decay;
+          if (p.alpha <= 0) {
+            fireworkParticles.splice(i, 1);
+            continue;
+          }
+          ctx.globalAlpha = Math.max(p.alpha, 0);
+          ctx.fillStyle = p.color;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+        fireworksRafId = requestAnimationFrame(fireworksLoop);
+      }
+
+      function startFireworks() {
+        resizeCanvas();
+        launchRocket();
+        setTimeout(launchRocket, 260);
+
+        fireworksLaunchInterval = setInterval(() => {
+          launchRocket();
+          if (Math.random() < 0.35) setTimeout(launchRocket, 200);
+        }, 900);
+
+        if (!fireworksRafId) fireworksLoop();
+
+        // slow down after the initial celebration burst, but keep a gentle sparkle going
+        setTimeout(() => {
+          clearInterval(fireworksLaunchInterval);
+          fireworksLaunchInterval = setInterval(() => {
+            if (Math.random() < 0.6) launchRocket();
+          }, 2600);
+        }, 9000);
+      }
+
+      // ======================================================================
+      // Falling petals
+      // ======================================================================
+      function startPetals() {
+        const layer = document.getElementById("petalsLayer");
+        if (layer.dataset.started) return;
+        layer.dataset.started = "true";
+        const hues = ["petal-rose", "petal-gold", "petal-cream"];
+        const count = 26;
+        const frag = document.createDocumentFragment();
+        for (let i = 0; i < count; i++) {
+          const petal = document.createElement("span");
+          const size = 10 + Math.random() * 14;
+          petal.className =
+            "petal " + hues[Math.floor(Math.random() * hues.length)];
+          petal.style.left = Math.random() * 100 + "vw";
+          petal.style.setProperty("--size", size.toFixed(1) + "px");
+          petal.style.setProperty(
+            "--duration",
+            (7 + Math.random() * 8).toFixed(2) + "s",
+          );
+          petal.style.setProperty(
+            "--delay",
+            (Math.random() * 10).toFixed(2) + "s",
+          );
+          petal.style.setProperty(
+            "--sway",
+            (30 + Math.random() * 60).toFixed(1) + "px",
+          );
+          petal.style.setProperty(
+            "--rot",
+            (Math.random() * 360).toFixed(0) + "deg",
+          );
+          frag.appendChild(petal);
+        }
+        layer.appendChild(frag);
+      }
+
+      // ======================================================================
+      // Envelope + letter
+      // ======================================================================
+      const envelope = document.getElementById("envelope");
+      const envelopeWrap = document.getElementById("envelopeWrap");
+      const letterModal = document.getElementById("letterModal");
+      const letterOverlay = document.getElementById("letterOverlay");
+      const letterClose = document.getElementById("letterClose");
+      const letterPaper = document.getElementById("letterPaper");
+      const letterHeadingEl = document.getElementById("letterHeading");
+      const letterBodyEl = document.getElementById("letterBody");
+      const letterSignoffEl = document.getElementById("letterSignoff");
+
+      let typingTimeouts = [];
+      let skipTyping = false;
+
+      envelopeWrap.addEventListener("click", () => {
+        if (envelope.classList.contains("open")) return;
+        envelope.classList.add("open");
+        spawnHeartBurst(envelopeWrap);
+        setTimeout(openLetterModal, 700);
+      });
+
+      function openLetterModal() {
+        skipTyping = false;
+        letterHeadingEl.textContent = "";
+        letterBodyEl.textContent = "";
+        letterSignoffEl.textContent = "";
+        letterModal.classList.add("show");
+        typeText(letterHeadingEl, CONFIG.heading, 45, () => {
+          typeText(letterBodyEl, CONFIG.letterBody, 14, () => {
+            letterSignoffEl.textContent = CONFIG.signOff;
+          });
+        });
+      }
+
+      function typeText(el, text, speed, onDone) {
+        let i = 0;
+        function step() {
+          if (skipTyping) {
+            el.textContent = text;
+            if (onDone) onDone();
+            return;
+          }
+          if (i < text.length) {
+            el.textContent += text[i];
+            i++;
+            typingTimeouts.push(setTimeout(step, speed));
+          } else if (onDone) {
+            onDone();
+          }
+        }
+        step();
+      }
+
+      function clearTyping() {
+        typingTimeouts.forEach((id) => clearTimeout(id));
+        typingTimeouts = [];
+      }
+
+      letterPaper.addEventListener("click", (e) => {
+        if (e.target.closest(".letter-close")) return;
+        skipTyping = true;
+      });
+
+      function closeLetterModal() {
+        letterModal.classList.remove("show");
+        envelope.classList.remove("open");
+        clearTyping();
+      }
+      letterClose.addEventListener("click", closeLetterModal);
+      letterOverlay.addEventListener("click", closeLetterModal);
+
+      function spawnHeartBurst(container) {
+        const rect = container.getBoundingClientRect();
+        const icons = ["💛", "💗", "✨"];
+        for (let i = 0; i < 6; i++) {
+          const span = document.createElement("span");
+          span.className = "mini-heart";
+          span.textContent = icons[Math.floor(Math.random() * icons.length)];
+          span.style.left =
+            rect.left + rect.width / 2 + (Math.random() * 80 - 40) + "px";
+          span.style.top =
+            rect.top + rect.height / 2 + (Math.random() * 20 - 10) + "px";
+          document.body.appendChild(span);
+          setTimeout(() => span.remove(), 1300);
+        }
+      }
+
+      // ======================================================================
+      // Init
+      // ======================================================================
+      initStars();
+      initFireflies();
+      ddInput.focus();
+    </script>
+  </body>
+</html>
