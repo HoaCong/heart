@@ -580,6 +580,10 @@ Chúc em tuổi mới thật rực rỡ, khoẻ mạnh và hạnh phúc. Anh yê
       lockMsg.textContent = '';
       doUnlockSequence();
     } else {
+      // Khóa lại scroll
+      document.documentElement.style.overflow = "hidden";
+      document.body.style.overflow = "hidden";
+
       wrongAttempts++;
       lockCard.classList.remove('shake');
       // force reflow so the animation can restart
@@ -594,6 +598,9 @@ Chúc em tuổi mới thật rực rỡ, khoẻ mạnh và hạnh phúc. Anh yê
   function doUnlockSequence(){
     lockCard.classList.add('success');
     document.documentElement.classList.add('unlocked');
+    document.body.style.overflow = "";
+    document.documentElement.style.overflow = "";
+
     ddInput.blur();
     mmInput.blur();
 
@@ -805,6 +812,8 @@ Chúc em tuổi mới thật rực rỡ, khoẻ mạnh và hạnh phúc. Anh yê
   // ======================================================================
   // Init
   // ======================================================================
+  document.documentElement.style.overflow = "hidden";
+  document.body.style.overflow = "hidden";
   initStars();
   initFireflies();
   ddInput.focus();
